@@ -3,23 +3,34 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(ServicoSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $email = config('admin.email');
+        $password = config('admin.password');
+
+        if (blank($email) || blank($password)) {
+            $this->command->warn('ADMIN_EMAIL/ADMIN_PASSWORD não definidos: admin não foi criado.');
+            return;
+        }
+
+        if (strlen($password) < 12) {
+            $this->command->error('ADMIN_PASSWORD precisa ter ao menos 12 caracteres.');
+            return;
+        }
+
+        $admin = User::firstOrNew(['email' => $email]);
+
+        if (! $admin->exists) {
+            $admin->name = config('admin.name');
+            $admin->password = Hash::make($password);
+            $admin->save();
+        }
     }
 }
