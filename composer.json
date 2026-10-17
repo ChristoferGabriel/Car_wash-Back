@@ -1,13 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "carwash/car-wash-back",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "API de agendamentos do Car Wash",
     "keywords": [
         "laravel",
-        "framework"
+        "framework",
+        "api",
+        "agendamento"
     ],
-    "license": "MIT",
+    "license": "Apache-2.0",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.17",
@@ -16,6 +18,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel-lang/common": "^6.8",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
