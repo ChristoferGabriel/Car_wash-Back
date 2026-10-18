@@ -3,12 +3,6 @@ info:
   title: Car Wash API
   version: 1.0.0
   description: |
-    Contrato fiel ao código do back: rotas, validações, respostas e
-    mensagens vêm de `routes/api.php`, dos controllers, do `StoreAgendamentoRequest` e dos
-    arquivos `lang/pt_BR`. Todos os caminhos já incluem o prefixo `/api`, então o front troca
-    só o host entre mock e back real.
-
-    **Mock (Prism)**
     ```
     npx @stoplight/prism-cli mock docs/openapi.yaml
     ```
