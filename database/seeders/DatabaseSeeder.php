@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -12,6 +12,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(ServicoSeeder::class);
 
+        $this->criarAdmin();
+    }
+
+    private function criarAdmin(): void
+    {
         $email = config('admin.email');
         $password = config('admin.password');
 
@@ -25,12 +30,15 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $admin = User::firstOrNew(['email' => $email]);
-
-        if (! $admin->exists) {
-            $admin->name = config('admin.name');
-            $admin->password = Hash::make($password);
-            $admin->save();
+        if (DB::table('usuario')->where('email', $email)->exists()) {
+            return;
         }
+
+        DB::table('usuario')->insert([
+            'nome' => config('admin.name'),
+            'email' => $email,
+            'senha_hash' => Hash::make($password),
+            'perfil' => 'admin',
+        ]);
     }
 }
