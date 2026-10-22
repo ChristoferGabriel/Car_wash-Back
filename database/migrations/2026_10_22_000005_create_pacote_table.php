@@ -8,17 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('servicos', function (Blueprint $table) {
-            $table->id();
-            $table->string('nome', 100)->unique();
+        Schema::create('pacote', function (Blueprint $table) {
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+
+            $table->integer('id', true);
+            $table->string('nome', 100);
             $table->text('descricao')->nullable();
-            $table->boolean('ativo')->default(true);
-            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('servicos');
+        Schema::dropIfExists('pacote');
     }
 };
