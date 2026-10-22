@@ -3,19 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Servico extends Model
 {
-    protected $fillable = ['nome', 'descricao', 'ativo'];
+    protected $table = 'servico';
+
+    protected $fillable = [
+        'nome', 'descricao', 'categoria', 'duracao_minutos', 'preco_base', 'ativo',
+    ];
 
     protected function casts(): array
     {
-        return ['ativo' => 'boolean'];
+        return [
+            'ativo' => 'boolean',
+            'duracao_minutos' => 'integer',
+            'preco_base' => 'decimal:2',
+        ];
     }
 
-    public function agendamentos(): HasMany
+    public function agendamentos(): BelongsToMany
     {
-        return $this->hasMany(Agendamento::class);
+        return $this->belongsToMany(Agendamento::class, 'agendamento_servico')
+            ->withPivot('preco_unitario');
     }
 }

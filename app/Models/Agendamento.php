@@ -3,18 +3,19 @@
 namespace App\Models;
 
 use App\Enums\StatusAgendamento;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Agendamento extends Model
 {
-    protected $table = 'agendamentos';
+    protected $table = 'agendamento';
 
     protected $fillable = [
-        'nome', 'telefone', 'endereco', 'servico_id',
-        'data', 'horario', 'observacoes',
+        'cliente_id', 'endereco_id', 'data_hora', 'data_hora_fim', 'observacoes',
     ];
 
     protected $attributes = [
@@ -24,14 +25,26 @@ class Agendamento extends Model
     protected function casts(): array
     {
         return [
-            'data' => 'date:Y-m-d',
+            'data_hora' => 'datetime',
+            'data_hora_fim' => 'datetime',
             'status' => StatusAgendamento::class,
         ];
     }
 
-    public function servico(): BelongsTo
+    public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Servico::class);
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function endereco(): BelongsTo
+    {
+        return $this->belongsTo(Endereco::class);
+    }
+
+    public function servicos(): BelongsToMany
+    {
+        return $this->belongsToMany(Servico::class, 'agendamento_servico')
+            ->withPivot('preco_unitario');
     }
 
     public function anexos(): HasMany
@@ -39,11 +52,16 @@ class Agendamento extends Model
         return $this->hasMany(AgendamentoAnexo::class);
     }
 
+    public function scopePendentes(Builder $query): Builder
+    {
+        return $query->where('status', StatusAgendamento::Pendente->value);
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (Agendamento $agendamento) {
             $agendamento->anexos->each(
-                fn ($anexo) => Storage::disk('local')->delete($anexo->caminho)
+                fn ($anexo) => Storage::disk('local')->delete($anexo->url)
             );
         });
     }
