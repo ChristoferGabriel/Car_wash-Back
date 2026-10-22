@@ -20,10 +20,5 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by('minuto:'.$request->ip()),
             Limit::perHour(30)->by('hora:'.$request->ip()),
         ]);
-
-        RateLimiter::for('agendamento', fn (Request $request) => [
-            Limit::perMinute(3)->by('minuto:'.$request->ip()),
-            Limit::perDay(20)->by('dia:'.$request->ip()),
-        ]);
     }
 }
