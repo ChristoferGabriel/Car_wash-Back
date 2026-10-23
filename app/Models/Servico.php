@@ -9,6 +9,8 @@ class Servico extends Model
 {
     protected $table = 'servico';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'nome', 'descricao', 'categoria', 'duracao_minutos', 'preco_base', 'ativo',
     ];

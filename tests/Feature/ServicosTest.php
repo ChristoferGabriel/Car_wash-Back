@@ -2,9 +2,19 @@
 
 use App\Models\Servico;
 
+function novoServico(array $sobrescrever = []): Servico
+{
+    return Servico::create(array_merge([
+        'nome' => 'Lavagem de Muros',
+        'categoria' => 'muro',
+        'duracao_minutos' => 60,
+        'preco_base' => 0,
+    ], $sobrescrever));
+}
+
 it('lista só os serviços ativos, sem precisar de login', function () {
-    Servico::create(['nome' => 'Lavagem de Muros']);
-    Servico::create(['nome' => 'Serviço desativado', 'ativo' => false]);
+    novoServico();
+    novoServico(['nome' => 'Serviço desativado', 'ativo' => false]);
 
     $this->getJson('/api/servicos')
         ->assertOk()
