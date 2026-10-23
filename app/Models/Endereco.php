@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use Database\Factories\EnderecoFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Endereco extends Model
 {
+    /** @use HasFactory<EnderecoFactory> */
+    use HasFactory;
+
     protected $table = 'endereco';
+
+    public $timestamps = false;
 
     protected $fillable = [
         'rua', 'numero', 'bairro', 'complemento', 'cidade', 'cep',

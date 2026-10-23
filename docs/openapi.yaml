@@ -27,6 +27,8 @@ servers:
 tags:
   - name: Público
   - name: Autenticação do cliente
+  - name: Endereços do cliente
+    description: Exige Bearer token de cliente. Cada cliente só enxerga os próprios endereços; o de outro cliente responde 404.
   - name: Autenticação da equipe
   - name: Admin
     description: Exige Bearer token.
@@ -227,6 +229,110 @@ paths:
               example: {id: 1, nome: Maria Souza, email: maria@exemplo.com, telefone: '41999999999'}
         '401': {$ref: '#/components/responses/NaoAutenticado'}
         '403': {$ref: '#/components/responses/AcessoNegado'}
+  /api/enderecos:
+    get:
+      tags: [Endereços do cliente]
+      summary: Lista os endereços do cliente logado
+      description: Ordenados por `id`. Sem endereços devolve `[]`.
+      operationId: listarEnderecos
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Endereços do cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Endereco'}
+              examples:
+                lista:
+                  value:
+                    - {id: 1, rua: Rua das Flores, numero: '123', bairro: Centro, complemento: null, cidade: Curitiba, cep: '80010000', endereco_completo: 'Rua das Flores, 123 - Centro, Curitiba - CEP 80010-000'}
+                    - {id: 2, rua: Avenida Sete de Setembro, numero: '4500', bairro: Batel, complemento: Apto 12, cidade: Curitiba, cep: '80250210', endereco_completo: 'Avenida Sete de Setembro, 4500, Apto 12 - Batel, Curitiba - CEP 80250-210'}
+                vazia:
+                  value: []
+        '401': {$ref: '#/components/responses/NaoAutenticado'}
+        '403': {$ref: '#/components/responses/AcessoNegado'}
+    post:
+      tags: [Endereços do cliente]
+      summary: Cadastra um endereço para o cliente logado
+      description: |
+        `cep` aceita máscara; só os dígitos contam (8) e é devolvido só com dígitos.
+        `numero` aceita texto ou inteiro e é devolvido como texto. `complemento` é opcional.
+      operationId: criarEndereco
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnderecoEntrada'}
+      responses:
+        '201':
+          description: Endereço criado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Endereco'}
+              example: {id: 1, rua: Rua das Flores, numero: '123', bairro: Centro, complemento: null, cidade: Curitiba, cep: '80010000', endereco_completo: 'Rua das Flores, 123 - Centro, Curitiba - CEP 80010-000'}
+        '401': {$ref: '#/components/responses/NaoAutenticado'}
+        '403': {$ref: '#/components/responses/AcessoNegado'}
+        '422': {$ref: '#/components/responses/EnderecoInvalido'}
+  /api/enderecos/{endereco}:
+    parameters:
+      - {name: endereco, in: path, required: true, schema: {type: integer}, example: 1}
+    get:
+      tags: [Endereços do cliente]
+      summary: Detalhe de um endereço do cliente logado
+      operationId: obterEndereco
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Endereço
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Endereco'}
+              example: {id: 1, rua: Rua das Flores, numero: '123', bairro: Centro, complemento: null, cidade: Curitiba, cep: '80010000', endereco_completo: 'Rua das Flores, 123 - Centro, Curitiba - CEP 80010-000'}
+        '401': {$ref: '#/components/responses/NaoAutenticado'}
+        '403': {$ref: '#/components/responses/AcessoNegado'}
+        '404': {$ref: '#/components/responses/NaoEncontrado'}
+    put:
+      tags: [Endereços do cliente]
+      summary: Substitui os dados de um endereço do cliente logado
+      description: Os mesmos campos do cadastro. Um `complemento` não enviado é limpo.
+      operationId: atualizarEndereco
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnderecoEntrada'}
+      responses:
+        '200':
+          description: Endereço atualizado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Endereco'}
+              example: {id: 1, rua: Rua Nova, numero: '123', bairro: Centro, complemento: null, cidade: Curitiba, cep: '81000111', endereco_completo: 'Rua Nova, 123 - Centro, Curitiba - CEP 81000-111'}
+        '401': {$ref: '#/components/responses/NaoAutenticado'}
+        '403': {$ref: '#/components/responses/AcessoNegado'}
+        '404': {$ref: '#/components/responses/NaoEncontrado'}
+        '422': {$ref: '#/components/responses/EnderecoInvalido'}
+    delete:
+      tags: [Endereços do cliente]
+      summary: Remove um endereço do cliente logado
+      description: Não remove endereço que já foi usado em algum agendamento (`409`).
+      operationId: removerEndereco
+      security: [{bearerAuth: []}]
+      responses:
+        '204': {description: Endereço removido, sem corpo}
+        '401': {$ref: '#/components/responses/NaoAutenticado'}
+        '403': {$ref: '#/components/responses/AcessoNegado'}
+        '404': {$ref: '#/components/responses/NaoEncontrado'}
+        '409':
+          description: Endereço usado em agendamentos
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Mensagem'}
+              example: {message: Este endereço já foi usado em agendamentos e não pode ser removido.}
   /api/admin/login:
     post:
       tags: [Autenticação da equipe]
@@ -492,6 +598,28 @@ components:
       properties:
         token: {type: string}
         usuario: {$ref: '#/components/schemas/Usuario'}
+    Endereco:
+      type: object
+      required: [id, rua, numero, bairro, complemento, cidade, cep, endereco_completo]
+      properties:
+        id: {type: integer}
+        rua: {type: string}
+        numero: {type: string}
+        bairro: {type: string}
+        complemento: {type: string, nullable: true}
+        cidade: {type: string}
+        cep: {type: string, description: Só dígitos (8)., example: '80010000'}
+        endereco_completo: {type: string, description: Texto pronto para exibir, com o CEP formatado., example: 'Rua das Flores, 123 - Centro, Curitiba - CEP 80010-000'}
+    EnderecoEntrada:
+      type: object
+      required: [rua, numero, bairro, cidade, cep]
+      properties:
+        rua: {type: string, minLength: 2, maxLength: 150, example: Rua das Flores}
+        numero: {type: string, maxLength: 20, example: '123'}
+        bairro: {type: string, maxLength: 100, example: Centro}
+        complemento: {type: string, nullable: true, maxLength: 100, example: Apto 12}
+        cidade: {type: string, maxLength: 100, example: Curitiba}
+        cep: {type: string, description: Aceita máscara; só os 8 dígitos contam., example: 80010-000}
     StatusAgendamento:
       type: string
       enum: [pendente, confirmado, concluido, cancelado]
@@ -612,6 +740,25 @@ components:
                 errors:
                   email: [É obrigatória a indicação de um valor para o campo e-mail.]
                   password: [É obrigatória a indicação de um valor para o campo senha.]
+    EnderecoInvalido:
+      description: Campos inválidos
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErroValidacao'}
+          examples:
+            camposVazios:
+              value:
+                message: É obrigatória a indicação de um valor para o campo rua. (e mais 4 erros)
+                errors:
+                  rua: [É obrigatória a indicação de um valor para o campo rua.]
+                  numero: [É obrigatória a indicação de um valor para o campo número.]
+                  bairro: [É obrigatória a indicação de um valor para o campo bairro.]
+                  cidade: [É obrigatória a indicação de um valor para o campo cidade.]
+                  cep: [É obrigatória a indicação de um valor para o campo CEP.]
+            cepInvalido:
+              value:
+                message: Informe o CEP com 8 dígitos.
+                errors: {cep: [Informe o CEP com 8 dígitos.]}
     NaoEncontrado:
       description: Recurso não encontrado
       content:
